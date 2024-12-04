@@ -35,6 +35,11 @@ export class PostsService {
     return this.postsUpdated.asObservable();
   }
 
+  //use the spread operator "..." to pull out all the properties of an object and add them to a new object so that we don't accidently manipulate the original object //to see if the post id is equal to the id here
+  getPost(id: string) {
+    return this.http.get<{_id: string, title: string, content: string}>("http://localhost:3000/api/posts/" + id);
+  }
+
   addPost(title: string, content: string) {
     const post: Post = { id: null, title: title, content: content };
     this.http
@@ -43,6 +48,26 @@ export class PostsService {
         const id = responseData.postId;
         post.id = id;
         this.posts.push(post);
+        this.postsUpdated.next([...this.posts]);
+      });
+  }
+
+  // updatePost(id: string, title: string, content: string) {
+  //   const post: Post = { id: id, title: title, content: content };
+  //   this.http.put("http://localhost:3000/api/posts/" + id, post)
+  //     .subscribe({
+  //       next: (response) => console.log(response),
+  //       error: (error) => console.error("Error updating post:", error),
+  //     });
+  // }
+  updatePost(id: string, title: string, content: string) {
+    const post: Post = { id: id, title: title, content: content };
+    this.http.put("http://localhost:3000/api/posts/" + id, post)
+      .subscribe(response => {
+        const updatedPosts = [...this.posts];
+        const oldPostIndex = updatedPosts.findIndex(p => p.id === post.id);
+        updatedPosts[oldPostIndex] = post;
+        this.posts = updatedPosts;
         this.postsUpdated.next([...this.posts]);
       });
   }
